@@ -17,9 +17,8 @@ public class Main {
 			Scanner scanner = new Scanner(System.in);
 			System.out.print("Inserisci una stringa di ricerca: ");
 			String searchQuery = scanner.nextLine();
-			scanner.close();
 
-			String sql = "SELECT c.name AS \"COUNTRY_NAME\", r.name AS \"REGION_NAME\", c2.name AS \"CONTINENT_NAME\"\r\n"
+			String sql = "SELECT c.country_id, c.name AS \"COUNTRY_NAME\", r.name AS \"REGION_NAME\", c2.name AS \"CONTINENT_NAME\"\r\n"
 					+ "FROM countries c \r\n" + "JOIN regions r ON c.region_id = r.region_id \r\n"
 					+ "JOIN continents c2 ON r.continent_id = c2.continent_id \r\n"
 					+ "WHERE c.name LIKE ? OR r.name LIKE ? OR c2.name LIKE ?\r\n"
@@ -32,13 +31,34 @@ public class Main {
 
 				try (ResultSet rs = ps.executeQuery()) {
 					while (rs.next()) {
+						int countryId = rs.getInt("country_id");
 						String countryName = rs.getString("COUNTRY_NAME");
 						String regionName = rs.getString("REGION_NAME");
 						String continentName = rs.getString("CONTINENT_NAME");
 
-						System.out
-								.println("Country Name: " + countryName + ", Region Name: " + regionName + ", Continent Name: " + continentName);
+						System.out.println("Country Id: "+ countryId + ", Country Name: " + countryName + ", Region Name: " + regionName + ", Continent Name: " + continentName);
 					}
+					System.out.println("scegli id della nazione");
+					int Id = scanner.nextInt(); 
+					
+						String sqlLanguage = "SELECT l.language " +
+						        "FROM languages l " +
+						        "JOIN country_languages cl ON l.language_id = cl.language_id " +
+						        "WHERE cl.country_id = ?";
+		                try (PreparedStatement languagePs = con.prepareStatement(sqlLanguage)) {
+		                    languagePs.setInt(1, Id);
+		               
+
+		                    try (ResultSet languageRs = languagePs.executeQuery()) {
+		                        //
+		                        System.out.println("Lingue parlate nella country selezionata:");
+		                        while (languageRs.next()) {
+		                            String languageName = languageRs.getString("language");
+		                            System.out.println("- " + languageName);
+		                        }
+		                    }
+		                }
+					scanner.close();
 				}
 			} catch (SQLException ex) {
 				System.err.println("Query not well formed");
