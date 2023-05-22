@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Main {
 	public static void main(String[] args) {
@@ -41,21 +43,34 @@ public class Main {
 					System.out.println("scegli id della nazione");
 					int Id = scanner.nextInt(); 
 					
-						String sqlLanguage = "SELECT l.language " +
-						        "FROM languages l " +
-						        "JOIN country_languages cl ON l.language_id = cl.language_id " +
-						        "WHERE cl.country_id = ?";
+						String sqlLanguage = "SELECT l.language, c.name, cs.population, cs.gdp \r\n"
+								+ "FROM languages l  \r\n"
+								+ "JOIN country_languages cl ON l.language_id = cl.language_id\r\n"
+								+ "join countries c on cl.country_id = c.country_id \r\n"
+								+ "join country_stats cs on c.country_id = cs.country_id \r\n"
+								+ "WHERE cl.country_id = ?";
 		                try (PreparedStatement languagePs = con.prepareStatement(sqlLanguage)) {
 		                    languagePs.setInt(1, Id);
 		               
 
 		                    try (ResultSet languageRs = languagePs.executeQuery()) {
-		                        //
-		                        System.out.println("Lingue parlate nella country selezionata:");
+		                    	Set<String> uniqueLanguages = new HashSet<>();
+		                        
+		                        String gdp = null;
+		                        String population = null;
 		                        while (languageRs.next()) {
+		                        	 gdp = languageRs.getString("gdp");
+		                        	population = languageRs.getString("population");
 		                            String languageName = languageRs.getString("language");
+		                            uniqueLanguages.add(languageName);
+		                        }
+		                        
+		                        System.out.println("Lingue parlate nella country selezionata:");
+		                        for (String languageName : uniqueLanguages) {
 		                            System.out.println("- " + languageName);
 		                        }
+		                        
+		                        System.out.println("\npopulation: " + population + "\ngdp: " + gdp);
 		                    }
 		                }
 					scanner.close();
